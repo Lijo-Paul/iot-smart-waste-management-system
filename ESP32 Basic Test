@@ -1,0 +1,9 @@
+void setup() {
+  Serial.begin(115200);
+  Serial.println("ESP32 is running");
+}
+
+void loop() {
+  Serial.println("Hello from ESP32");
+  delay(1000);
+}
