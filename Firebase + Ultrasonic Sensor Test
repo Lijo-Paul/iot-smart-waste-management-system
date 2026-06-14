@@ -1,0 +1,62 @@
+#include <WiFi.h>
+#include <Firebase_ESP_Client.h>
+
+#define WIFI_SSID "YOUR_WIFI"
+#define WIFI_PASSWORD "YOUR_PASSWORD"
+
+#define DATABASE_URL "YOUR_DATABASE_URL"
+#define DATABASE_SECRET "YOUR_DATABASE_SECRET"
+
+#define TRIG_PIN 5
+#define ECHO_PIN 18
+
+FirebaseData fbdo;
+FirebaseAuth auth;
+FirebaseConfig config;
+
+long getDistance() {
+
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+
+  digitalWrite(TRIG_PIN, LOW);
+
+  long duration = pulseIn(ECHO_PIN, HIGH, 30000);
+
+  if (duration == 0) return -1;
+
+  return duration * 0.034 / 2;
+}
+
+void setup() {
+
+  Serial.begin(115200);
+
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
+
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+  }
+
+  config.database_url = DATABASE_URL;
+  config.signer.tokens.legacy_token = DATABASE_SECRET;
+
+  Firebase.begin(&config, &auth);
+}
+
+void loop() {
+
+  long distance = getDistance();
+
+  Firebase.RTDB.setInt(&fbdo,
+                       "/ultrasonic/distance_cm",
+                       distance);
+
+  delay(2000);
+}
